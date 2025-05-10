@@ -23,3 +23,5 @@ USER root
 
 COPY post-start.sh /usr/local/bin/post-start
 RUN chmod +x /usr/local/bin/post-start
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh

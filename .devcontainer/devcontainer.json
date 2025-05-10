@@ -12,6 +12,6 @@
   },
   "postStartCommand": "post-start",
   "settings": {},
-  "extensions": ["hashicorp.terraform"],
+  "extensions": ["hashicorp.terraform", "ms-python.vscode-pylance"],
   "remoteUser": "vscode"
 }
