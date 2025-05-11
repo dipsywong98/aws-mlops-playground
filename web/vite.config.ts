@@ -9,7 +9,7 @@ export default defineConfig({
       targets: [
         {
           src: 'node_modules/onnxruntime-web/dist/*.wasm',
-          dest: '.'
+          dest: 'node_modules/.vite/deps/'
         }
       ]
     }),
