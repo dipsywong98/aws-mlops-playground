@@ -114,7 +114,7 @@ def main():
     parser.add_argument("--test", type=str, default=os.environ["SM_CHANNEL_TEST"])
     args = parser.parse_args()
 
-    use_accel = False
+    use_accel = not args.no_accel and torch.accelerator.is_available()
 
     torch.manual_seed(args.seed)
 
@@ -153,12 +153,20 @@ def main():
         scheduler.step()
 
     
-    output = args.output_data_dir
-    torch.save(model.state_dict(), f"{output}/mnist_cnn.pt")
+    output_dir = args.output_data_dir
+    torch.save(model.state_dict(), f"{output_dir}/model.pth")
     example_inputs = (torch.randn(1, 1, 28, 28),)
     onnx_program = torch.onnx.export(model, example_inputs, dynamo=True)
     onnx_program.optimize()
-    onnx_program.save(f"{output}/mnist-cnn.onnx")
+    onnx_program.save(f"{output_dir}/model.onnx")
+
+
+def model_fn(model_dir, context):
+    model = Net()
+    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
+        model.load_state_dict(torch.load(f))
+    return model
+
 
 if __name__ == '__main__':
     main()
