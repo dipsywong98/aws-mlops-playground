@@ -153,19 +153,12 @@ def main():
         scheduler.step()
 
     
-    output_dir = args.output_data_dir
+    output_dir = args.model_dir
     torch.save(model.state_dict(), f"{output_dir}/model.pth")
     example_inputs = (torch.randn(1, 1, 28, 28),)
     onnx_program = torch.onnx.export(model, example_inputs, dynamo=True)
     onnx_program.optimize()
     onnx_program.save(f"{output_dir}/model.onnx")
-
-
-def model_fn(model_dir, context):
-    model = Net()
-    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
-        model.load_state_dict(torch.load(f))
-    return model
 
 
 if __name__ == '__main__':
