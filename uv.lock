@@ -8,6 +8,13 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[manifest]
+members = [
+    "aws-mlops-playground",
+    "function",
+    "pipelines",
+]
+
 [[package]]
 name = "aiosqlite"
 version = "0.21.0"
@@ -193,8 +200,12 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "functions" },
     { name = "ipykernel" },
+    { name = "pipelines" },
     { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-parametrization" },
 ]
 
 [package.metadata]
@@ -215,8 +226,12 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "functions" },
     { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "pipelines", editable = "packages/pipelines" },
     { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=0.26.0" },
+    { name = "pytest-parametrization", specifier = ">=2022.2.1" },
 ]
 
 [[package]]
@@ -617,6 +632,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/45/d8/8425e6ba5fcec61a1
 wheels = [
     { url = "https://files.pythonhosted.org/packages/44/4b/e0cfc1a6f17e990f3e64b7d941ddc4acdc7b19d6edd51abf495f32b1a9e4/fsspec-2025.3.2-py3-none-any.whl", hash = "sha256:2daf8dc3d1dfa65b6aa37748d112773a7a08416f6c70d96b264c96476ecaf711", size = 194435, upload-time = "2025-03-31T15:27:07.028Z" },
 ]
+
+[[package]]
+name = "function"
+version = "0.1.0"
+source = { editable = "packages/function" }
+
+[[package]]
+name = "functions"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/6f/7f35add5d405c189d9b9646d298bd50d5db6efdca08af77320b4b0626499/functions-0.7.0.tar.gz", hash = "sha256:5a36bd11d36bbce210fecddd9ff1a475a86035905818a4075d6c7ebb2f714181", size = 2661, upload-time = "2014-11-27T00:04:46.076Z" }
 
 [[package]]
 name = "google-pasta"
@@ -1808,6 +1834,11 @@ wheels = [
 ]
 
 [[package]]
+name = "pipelines"
+version = "0.1.0"
+source = { editable = "packages/pipelines" }
+
+[[package]]
 name = "platformdirs"
 version = "4.3.8"
 source = { registry = "https://pypi.org/simple" }
@@ -2193,6 +2224,28 @@ sdist = { url = "https://files.pythonhosted.org/packages/ae/3c/c9d525a414d506893
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/3d/64ad57c803f1fa1e963a7946b6e0fea4a70df53c1a7fed304586539c2bac/pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820", size = 343634, upload-time = "2025-03-02T12:54:52.069Z" },
 ]
+
+[[package]]
+name = "pytest-asyncio"
+version = "0.26.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/c4/453c52c659521066969523e87d85d54139bbd17b78f09532fb8eb8cdb58e/pytest_asyncio-0.26.0.tar.gz", hash = "sha256:c4df2a697648241ff39e7f0e4a73050b03f123f760673956cf0d72a4990e312f", size = 54156, upload-time = "2025-03-25T06:22:28.883Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/20/7f/338843f449ace853647ace35870874f69a764d251872ed1b4de9f234822c/pytest_asyncio-0.26.0-py3-none-any.whl", hash = "sha256:7b51ed894f4fbea1340262bdae5135797ebbe21d8638978e35d31c6d19f72fb0", size = 19694, upload-time = "2025-03-25T06:22:27.807Z" },
+]
+
+[[package]]
+name = "pytest-parametrization"
+version = "2022.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/43/c3459bd30ffdb9df4b23bdffa7febf141227d0a2b6701f0443f3ed7fcfb5/pytest-parametrization-2022.2.1.tar.gz", hash = "sha256:057229ad7e284fe3435a717a8a58dc5f169b3d1e5aa946d94ec591d31bd78445", size = 3734, upload-time = "2022-05-22T12:51:41.204Z" }
 
 [[package]]
 name = "python-dateutil"
