@@ -181,7 +181,7 @@ def get_pipeline(input_data_uri, role):
         left=JsonGet(
             step_name=step_eval.name,
             property_file=evaluation_report,
-            json_path="regression_metrics.accuracy.value",
+            json_path="accuracy.value",
         ),
         right=accuracy_threshold,
     )
