@@ -104,7 +104,7 @@ def get_pipeline(input_data_uri, role):
         py_version="py312",
         instance_type="ml.m5.large",
         instance_count=1,
-        base_job_name="script-abalone-eval",
+        base_job_name="mnist-eval",
         role=role,
         sagemaker_session=pipeline_session,
         env={
