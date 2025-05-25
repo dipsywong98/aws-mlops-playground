@@ -41,4 +41,4 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
         run: uv sync
-      - run: uv run --env-file .env pipelines/mnist/pipeline.py run-pipeline=True
+      - run: uv run --env-file .env packages/pipelines/src/pipelines/mnist/pipeline.py run-pipeline=True
