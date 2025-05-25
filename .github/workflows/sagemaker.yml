@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
       - name: Run Tests
-        run: uv run pytests tests
+        run: uv run pytest tests
   upsert-mnist-pipeline:
     runs-on: ubuntu-22.04
     needs: test
