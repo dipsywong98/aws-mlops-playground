@@ -54,23 +54,23 @@ def train(args, model, device, train_loader, optimizer, epoch):
                 break
 
 
-def test(model, device, test_loader):
+def validation(model, device, validation_loader):
     model.eval()
-    test_loss = 0
+    validation_loss = 0
     correct = 0
     with torch.no_grad():
-        for data, target in test_loader:
+        for data, target in validation_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            validation_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
-    test_loss /= len(test_loader.dataset)
+    validation_loss /= len(validation_loader.dataset)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+    print('\nvalidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        validation_loss, correct, len(validation_loader.dataset),
+        100. * correct / len(validation_loader.dataset)))
 
 
 class MnistDataset(Dataset):
@@ -90,8 +90,8 @@ def main():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
-    parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
-                        help='input batch size for testing (default: 1000)')
+    parser.add_argument('--validation-batch-size', type=int, default=1000, metavar='N',
+                        help='input batch size for validationing (default: 1000)')
     parser.add_argument('--epochs', type=int, default=14, metavar='N',
                         help='number of epochs to train (default: 14)')
     parser.add_argument('--lr', type=float, default=1.0, metavar='LR',
@@ -111,7 +111,7 @@ def main():
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
-    parser.add_argument("--test", type=str, default=os.environ["SM_CHANNEL_TEST"])
+    parser.add_argument("--validation", type=str, default=os.environ["SM_CHANNEL_validation"])
     args = parser.parse_args()
 
     use_accel = not args.no_accel and torch.accelerator.is_available()
@@ -124,13 +124,13 @@ def main():
         device = torch.device("cpu")
 
     train_kwargs = {'batch_size': args.batch_size}
-    test_kwargs = {'batch_size': args.test_batch_size}
+    validation_kwargs = {'batch_size': args.validation_batch_size}
     if use_accel:
         accel_kwargs = {'num_workers': 1,
                        'pin_memory': True,
                        'shuffle': True}
         train_kwargs.update(accel_kwargs)
-        test_kwargs.update(accel_kwargs)
+        validation_kwargs.update(accel_kwargs)
 
     transform=transforms.Compose([
         transforms.ToTensor(),
@@ -138,10 +138,10 @@ def main():
     ])
 
     dataset1 = MnistDataset(os.path.join(args.train, "train.parquet"))
-    dataset2 = MnistDataset(os.path.join(args.test, "test.parquet"))
+    dataset2 = MnistDataset(os.path.join(args.validation, "validation.parquet"))
 
     train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
-    test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+    validation_loader = torch.utils.data.DataLoader(dataset2, **validation_kwargs)
 
     model = Net().to(device)
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
@@ -149,7 +149,7 @@ def main():
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        validation(model, device, validation_loader)
         scheduler.step()
 
     

@@ -13,6 +13,7 @@ dependencies = [
     "prefect>=3.4.1",
     "pyarrow>=20.0.0",
     "sagemaker>=2.244.0",
+    "scikit-learn>=1.6.1",
     "torch>=2.7.0",
     "torchvision>=0.22.0",
 ]
