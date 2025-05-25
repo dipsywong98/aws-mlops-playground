@@ -14,7 +14,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-southeast-2
-          function_name: list_models
+          function_name: sagemaker_list_models
           source: packages/functions/src/functions/list_models.py
       - name: default deploy 2
         uses: appleboy/lambda-action@v0.2.0
@@ -22,5 +22,5 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ap-southeast-2
-          function_name: download_model
+          function_name: sagemaker_download_model
           source: packages/functions/src/functions/download_model.py
