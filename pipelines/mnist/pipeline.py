@@ -14,6 +14,7 @@ from sagemaker.pytorch import PyTorch
 from sagemaker.pytorch.processing import PyTorchProcessor
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.workflow.properties import PropertyFile
+import typer
 
 tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"}]
 
@@ -41,6 +42,9 @@ def get_pipeline(input_data_uri, role):
         base_job_name="mnist-preprocess",
         role=role,
         sagemaker_session=pipeline_session,
+        env={
+            'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
+        },
     )
 
     step_process = ProcessingStep(
@@ -69,7 +73,7 @@ def get_pipeline(input_data_uri, role):
         output_path="s3://sagemaker-ap-southeast-2-993630082325/models/mnist",
         env={
             'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
-        }
+        },
     )
 
     step_train = TrainingStep(
@@ -95,6 +99,9 @@ def get_pipeline(input_data_uri, role):
         base_job_name="script-abalone-eval",
         role=role,
         sagemaker_session=pipeline_session,
+        env={
+            'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
+        },
     )
 
     evaluation_report = PropertyFile(
@@ -134,11 +141,20 @@ def get_pipeline(input_data_uri, role):
 
     return pipeline
 
-if __name__ == "__main__":
-    
-    input_data_uri = "s3://sagemaker-ap-southeast-2-993630082325/datasets/mnist/original"
-    role = "arn:aws:iam::993630082325:role/service-role/AmazonSageMaker-ExecutionRole-20250516T191424"
+
+def main(
+    input_data_uri = "s3://sagemaker-ap-southeast-2-993630082325/datasets/mnist/original",
+    role = "arn:aws:iam::993630082325:role/service-role/AmazonSageMaker-ExecutionRole-20250516T191424",
+    run_pipeline = False,
+): 
     pipeline = get_pipeline(input_data_uri, role)
     pipeline.upsert(role_arn=role, tags=[{"Key": "Project", "Value": "MNIST"}])
-    
     print(f"Pipeline {pipeline.name} created successfully.")
+    if run_pipeline:
+        print("Starting pipeline execution...")
+        execution = pipeline.start()
+        execution.wait()
+
+
+if __name__ == "__main__":
+    typer.run(main)

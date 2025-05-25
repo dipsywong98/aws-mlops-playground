@@ -2,7 +2,34 @@ import os
 import pathlib
 import pandas as pd
 import numpy as np
-import typer
+
+
+def ensure_parent_dir_exists(file_path):
+    """Ensures that the parent directory of the given file path exists.
+    If the parent directory does not exist, it is created.
+
+    Args:
+        file_path: The path to the file.
+    """
+    directory = os.path.dirname(file_path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+
+def save_as_parquet(np_array, file_path):
+    """
+    Save a numpy array as a parquet file.
+    
+    Args:
+        np_array (np.ndarray): The numpy array to save.
+        file_path (str): The path where the parquet file will be saved.
+    """
+    ensure_parent_dir_exists(file_path)
+    df = pd.DataFrame(np_array)
+    df.columns = df.columns.astype(str)
+    df.to_parquet(file_path, index=False)
+    print(f"Saved data to {file_path}")
+
 
 def main(base_dir = "/opt/ml/processing"):
     df = pd.read_parquet(
@@ -15,18 +42,10 @@ def main(base_dir = "/opt/ml/processing"):
     X = df.to_numpy()
     train, validation, test = np.split(X, [int(0.7 * len(X)), int(0.85 * len(X))])
 
-
-    pathlib.Path(f"{base_dir}/train").mkdir(parents=True, exist_ok=True) 
-    pd.DataFrame(train).to_parquet(f"{base_dir}/train/train.parquet")
-
-    pathlib.Path(f"{base_dir}/validation").mkdir(parents=True, exist_ok=True) 
-    pd.DataFrame(validation).to_parquet(
-        f"{base_dir}/validation/validation.parquet"
-    )
-
-    pathlib.Path(f"{base_dir}/test").mkdir(parents=True, exist_ok=True) 
-    pd.DataFrame(test).to_parquet(f"{base_dir}/test/test.parquet")
+    save_as_parquet(train, f"{base_dir}/train/train.parquet")
+    save_as_parquet(validation, f"{base_dir}/validation/validation.parquet")
+    save_as_parquet(test, f"{base_dir}/test/test.parquet")
 
 if __name__ == "__main__":
     print(os.environ)
-    typer.run(main)
+    main()
