@@ -16,9 +16,11 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "torch>=2.7.0",
     "torchvision>=0.22.0",
+    "typer>=0.15.4",
 ]
 
 [dependency-groups]
 dev = [
     "ipykernel>=6.29.5",
+    "pytest>=8.3.5",
 ]

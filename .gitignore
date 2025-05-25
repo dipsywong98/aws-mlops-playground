@@ -2,3 +2,4 @@
 models
 data
 prefect-demos
+__pycache__

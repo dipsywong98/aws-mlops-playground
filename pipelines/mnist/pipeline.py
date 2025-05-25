@@ -15,6 +15,8 @@ from sagemaker.pytorch.processing import PyTorchProcessor
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.workflow.properties import PropertyFile
 
+tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"}]
+
 
 def get_pipeline(input_data_uri, role):
     pipeline_session = PipelineSession()
@@ -99,7 +101,7 @@ def get_pipeline(input_data_uri, role):
         name="EvaluationReport", output_name="evaluation", path="evaluation.json"
     )
     step_eval = ProcessingStep(
-        name="AbaloneEval",
+        name="MnistEval",
         processor=model_evaluator,
         property_files=[evaluation_report],
         inputs=[
@@ -137,6 +139,6 @@ if __name__ == "__main__":
     input_data_uri = "s3://sagemaker-ap-southeast-2-993630082325/datasets/mnist/original"
     role = "arn:aws:iam::993630082325:role/service-role/AmazonSageMaker-ExecutionRole-20250516T191424"
     pipeline = get_pipeline(input_data_uri, role)
-    pipeline.upsert(role_arn=role)
+    pipeline.upsert(role_arn=role, tags=[{"Key": "Project", "Value": "MNIST"}])
     
     print(f"Pipeline {pipeline.name} created successfully.")
