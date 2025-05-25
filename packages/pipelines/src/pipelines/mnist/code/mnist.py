@@ -111,7 +111,7 @@ def main():
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
-    parser.add_argument("--validation", type=str, default=os.environ["SM_CHANNEL_validation"])
+    parser.add_argument("--validation", type=str, default=os.environ["SM_CHANNEL_VALIDATION"])
     args = parser.parse_args()
 
     use_accel = not args.no_accel and torch.accelerator.is_available()

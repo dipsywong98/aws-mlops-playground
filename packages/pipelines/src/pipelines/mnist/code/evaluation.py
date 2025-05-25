@@ -59,7 +59,9 @@ if __name__ == "__main__":
     test_loader = torch.utils.data.DataLoader(test_dataset,**test_kwargs)
 
     report_dict = {
-        "accuracy ": test(model, device, test_loader),
+        "accuracy": {
+            "value": test(model, device, test_loader)
+        },
     }
 
     output_dir = "/opt/ml/processing/evaluation"

@@ -15,6 +15,13 @@ from sagemaker.pytorch.processing import PyTorchProcessor
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.workflow.properties import PropertyFile
 import typer
+from sagemaker.workflow.conditions import ConditionLessThanOrEqualTo
+from sagemaker.workflow.condition_step import ConditionStep
+from sagemaker.workflow.functions import JsonGet
+from sagemaker.workflow.model_step import ModelStep
+
+from sagemaker.workflow.fail_step import FailStep
+from sagemaker.workflow.functions import Join
 
 tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"}]
 
@@ -32,7 +39,8 @@ def get_pipeline(input_data_uri, role):
         default_value=input_data_uri,
     )
 
-    mse_threshold = ParameterFloat(name="MseThreshold", default_value=6.0)
+    accuracy_threshold = ParameterFloat(name="AccuracyThreshold", default_value=6.0)
+    model_package_group_name = f"MnistModelPackageGroupName"
 
     
     sklearn_processor = SKLearnProcessor(
@@ -75,6 +83,7 @@ def get_pipeline(input_data_uri, role):
             'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
         },
     )
+    image_uri = estimator.image_uri
 
     step_train = TrainingStep(
         name="MINIST-Train",
@@ -128,6 +137,55 @@ def get_pipeline(input_data_uri, role):
         code=os.path.join(pipeline_root_dir, "code/evaluation.py"),
     )
 
+    from sagemaker.model_metrics import MetricsSource, ModelMetrics
+
+    model_metrics = ModelMetrics(
+        model_statistics=MetricsSource(
+            s3_uri="{}/evaluation.json".format(
+                step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"]
+            ),
+            content_type="application/json",
+        )
+    )
+    model = estimator.create_model(
+        entry_point="inference.py",
+        source_dir="code",
+    )
+    register_args = model.register(
+        # content_types=["text/csv"],
+        # response_types=["text/csv"],
+        inference_instances=["ml.t2.medium", "ml.m5.large"],
+        transform_instances=["ml.m5.large"],
+        model_package_group_name=model_package_group_name,
+        approval_status=model_approval_status,
+        model_metrics=model_metrics,
+    )
+    step_register = ModelStep(
+        name="AbaloneRegisterModel",
+        step_args= register_args,
+    )
+
+    cond_lte = ConditionLessThanOrEqualTo(
+        left=JsonGet(
+            step_name=step_eval.name,
+            property_file=evaluation_report,
+            json_path="regression_metrics.accuracy.value",
+        ),
+        right=accuracy_threshold,
+    )
+
+    step_fail = FailStep(
+        name="MnistAccuracyFail",
+        error_message=Join(on=" ", values=["Execution failed due to accuracy <", accuracy_threshold]),
+    )
+
+    step_cond = ConditionStep(
+        name="MnistCondition",
+        conditions=[cond_lte],
+        if_steps=[step_register],
+        else_steps=[step_fail],
+    )
+
     pipeline_name = f"MNIST-Pipeline"
     pipeline = Pipeline(
         name=pipeline_name,
@@ -135,9 +193,9 @@ def get_pipeline(input_data_uri, role):
             instance_type,
             model_approval_status,
             input_data,
-            mse_threshold,
+            accuracy_threshold,
         ],
-        steps=[step_process, step_train, step_eval],
+        steps=[step_process, step_train, step_eval, step_cond],
     )
 
     return pipeline
