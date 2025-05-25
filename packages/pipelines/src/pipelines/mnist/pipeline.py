@@ -18,7 +18,8 @@ tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"
 
 
 def get_pipeline(input_data_uri, role):
-    pipeline_session = PipelineSession()
+    pipeline_name = "MNIST-Pipeline"
+    pipeline_session = PipelineSession(default_bucket_prefix=f"{pipeline_name}-substeps")
     pipeline_root_dir = os.path.dirname(__file__)
 
     instance_type = ParameterString(
@@ -32,7 +33,7 @@ def get_pipeline(input_data_uri, role):
         default_value=input_data_uri,
     )
 
-    accuracy_threshold = ParameterFloat(name="AccuracyThreshold", default_value=6.0)
+    accuracy_threshold = ParameterFloat(name="AccuracyThreshold", default_value=0.1)
     model_package_group_name = "MnistModelPackageGroupName"
 
     sklearn_processor = SKLearnProcessor(
@@ -96,6 +97,7 @@ def get_pipeline(input_data_uri, role):
     )
 
     from sagemaker.processing import FrameworkProcessor
+
     model_evaluator = FrameworkProcessor(
         estimator_cls=PyTorch,
         framework_version="2.6",
@@ -109,9 +111,9 @@ def get_pipeline(input_data_uri, role):
             "SAGEMAKER_REQUIREMENTS": "requirements.txt",
         },
         tags=tags,
-        
     )
     from sagemaker.workflow.properties import PropertyFile
+
     evaluation_report = PropertyFile(
         name="EvaluationReport", output_name="evaluation", path="evaluation.json"
     )
@@ -133,7 +135,7 @@ def get_pipeline(input_data_uri, role):
                 output_name="evaluation", source="/opt/ml/processing/evaluation"
             ),
         ],
-        code=os.path.join(pipeline_root_dir, "evaluation.py"),
+        code="evaluation.py",
         source_dir=os.path.join(pipeline_root_dir, "code"),
     )
     step_eval = ProcessingStep(
@@ -171,10 +173,11 @@ def get_pipeline(input_data_uri, role):
         ),
     )
 
-    from sagemaker.workflow.conditions import ConditionLessThanOrEqualTo
+    from sagemaker.workflow.conditions import ConditionGreaterThanOrEqualTo
     from sagemaker.workflow.condition_step import ConditionStep
     from sagemaker.workflow.functions import JsonGet
-    cond_lte = ConditionLessThanOrEqualTo(
+
+    cond_gte = ConditionGreaterThanOrEqualTo(
         left=JsonGet(
             step_name=step_eval.name,
             property_file=evaluation_report,
@@ -184,6 +187,7 @@ def get_pipeline(input_data_uri, role):
     )
     from sagemaker.workflow.fail_step import FailStep
     from sagemaker.workflow.functions import Join
+
     step_fail = FailStep(
         name="MnistAccuracyFail",
         error_message=Join(
@@ -193,12 +197,10 @@ def get_pipeline(input_data_uri, role):
 
     step_cond = ConditionStep(
         name="MnistCondition",
-        conditions=[cond_lte],
+        conditions=[cond_gte],
         if_steps=[step_register],
         else_steps=[step_fail],
     )
-
-    pipeline_name = "MNIST-Pipeline"
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[

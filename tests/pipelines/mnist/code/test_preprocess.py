@@ -1,26 +1,10 @@
 import pandas as pd
 from pipelines.mnist.code.preprocessing import main as preprocess
 import os
-import shutil
-from pathlib import Path
+from fixtures.fixtures import *
 
 
-def test_preprocessing_generate_train_test_validation_parquets():
-    # clean tmp directory that store data
-    tmp_dir = Path("/tmp/mnist")
-    if tmp_dir.exists():
-        shutil.rmtree(tmp_dir)
-    # copy fixture from fixture/tmp to tmp
-    current_dir = Path(__file__).parent
-    fixture_dir = os.path.join(current_dir, "fixtures")
-    # copy all.parquet to /tmp/mnist/processing/input
-    os.makedirs(tmp_dir, exist_ok=True)
-    os.makedirs(os.path.join(tmp_dir, "processing/input"), exist_ok=True)
-    shutil.copy(
-        os.path.join(fixture_dir, "all.parquet"),
-        os.path.join(tmp_dir, "processing/input/all.parquet"),
-    )
-
+def test_preprocessing_generate_train_test_validation_parquets(tmp_dir, all_parquet):
     # assert directory not exists
     assert not os.path.exists(os.path.join(tmp_dir, "processing/train"))
     assert not os.path.exists(os.path.join(tmp_dir, "processing/test"))

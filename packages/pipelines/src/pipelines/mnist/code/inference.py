@@ -2,7 +2,7 @@
 import os
 
 import torch
-from mnist import Net
+from .mnist import Net
 
 
 def model_fn(model_dir, context):
