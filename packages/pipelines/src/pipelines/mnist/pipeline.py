@@ -83,7 +83,6 @@ def get_pipeline(input_data_uri, role):
             'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
         },
     )
-    image_uri = estimator.image_uri
 
     step_train = TrainingStep(
         name="MINIST-Train",
@@ -147,22 +146,20 @@ def get_pipeline(input_data_uri, role):
             content_type="application/json",
         )
     )
-    model = estimator.create_model(
-        entry_point="inference.py",
-        source_dir="code",
-    )
-    register_args = model.register(
-        # content_types=["text/csv"],
-        # response_types=["text/csv"],
-        inference_instances=["ml.t2.medium", "ml.m5.large"],
-        transform_instances=["ml.m5.large"],
-        model_package_group_name=model_package_group_name,
-        approval_status=model_approval_status,
-        model_metrics=model_metrics,
+    from sagemaker.model import Model
+    model = Model(
+        image_uri=estimator.training_image_uri(),
+        model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
+        sagemaker_session=PipelineSession(),
+        role=role,
     )
     step_register = ModelStep(
-        name="AbaloneRegisterModel",
-        step_args= register_args,
+        name="MnistRegisterModel",
+        step_args=model.register(
+            model_package_group_name=model_package_group_name,
+            approval_status=model_approval_status,
+            model_metrics=model_metrics,
+        ),
     )
 
     cond_lte = ConditionLessThanOrEqualTo(
