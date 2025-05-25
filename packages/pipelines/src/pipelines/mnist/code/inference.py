@@ -1,8 +1,13 @@
 # local
+from importlib import import_module
 import os
 
 import torch
-from .mnist import Net
+
+try:
+    from mnist import Net
+except ImportError:
+    from .mnist import Net
 
 
 def model_fn(model_dir, context):

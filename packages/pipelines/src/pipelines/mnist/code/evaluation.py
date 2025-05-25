@@ -1,12 +1,18 @@
+from importlib import import_module
 import json
+import os
 import pathlib
 import tarfile
 
 import torch
-from .inference import model_fn
 
 
-from .mnist import MnistDataset, Net
+try:
+    from inference import model_fn
+    from mnist import MnistDataset, Net
+except ImportError:
+    from .inference import model_fn
+    from .mnist import MnistDataset, Net
 
 
 def test(model, device, test_loader):
