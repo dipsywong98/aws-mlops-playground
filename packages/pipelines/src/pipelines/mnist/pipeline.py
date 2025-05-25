@@ -95,59 +95,65 @@ def get_pipeline(input_data_uri, role):
         },
     )
 
-    # model_evaluator = PyTorchProcessor(
-    #     framework_version="2.6",
-    #     py_version="py312",
-    #     instance_type="ml.m5.large",
-    #     instance_count=1,
-    #     base_job_name="mnist-eval",
-    #     role=role,
-    #     sagemaker_session=pipeline_session,
-    #     env={
-    #         "SAGEMAKER_REQUIREMENTS": "requirements.txt",
-    #     },
-    #     tags=tags,
-    # )
+    from sagemaker.processing import FrameworkProcessor
+    model_evaluator = FrameworkProcessor(
+        estimator_cls=PyTorch,
+        framework_version="2.6",
+        py_version="py312",
+        instance_type="ml.m5.large",
+        instance_count=1,
+        base_job_name="mnist-eval",
+        role=role,
+        sagemaker_session=pipeline_session,
+        env={
+            "SAGEMAKER_REQUIREMENTS": "requirements.txt",
+        },
+        tags=tags,
+        
+    )
+    from sagemaker.workflow.properties import PropertyFile
+    evaluation_report = PropertyFile(
+        name="EvaluationReport", output_name="evaluation", path="evaluation.json"
+    )
+    eval_step_args = model_evaluator.run(
+        inputs=[
+            ProcessingInput(
+                source=step_train.properties.ModelArtifacts.S3ModelArtifacts,
+                destination="/opt/ml/processing/model",
+            ),
+            ProcessingInput(
+                source=step_process.properties.ProcessingOutputConfig.Outputs[
+                    "test"
+                ].S3Output.S3Uri,
+                destination="/opt/ml/processing/test",
+            ),
+        ],
+        outputs=[
+            ProcessingOutput(
+                output_name="evaluation", source="/opt/ml/processing/evaluation"
+            ),
+        ],
+        code=os.path.join(pipeline_root_dir, "evaluation.py"),
+        source_dir=os.path.join(pipeline_root_dir, "code"),
+    )
+    step_eval = ProcessingStep(
+        name="MnistEval",
+        step_args=eval_step_args,
+        property_files=[evaluation_report],
+    )
 
-    # evaluation_report = PropertyFile(
-    #     name="EvaluationReport", output_name="evaluation", path="evaluation.json"
-    # )
-    # step_eval = ProcessingStep(
-    #     name="MnistEval",
-    #     processor=model_evaluator,
-    #     property_files=[evaluation_report],
-    #     inputs=[
-    #         ProcessingInput(
-    #             source=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-    #             destination="/opt/ml/processing/model",
-    #         ),
-    #         ProcessingInput(
-    #             source=step_process.properties.ProcessingOutputConfig.Outputs[
-    #                 "test"
-    #             ].S3Output.S3Uri,
-    #             destination="/opt/ml/processing/test",
-    #         ),
-    #     ],
-    #     outputs=[
-    #         ProcessingOutput(
-    #             output_name="evaluation", source="/opt/ml/processing/evaluation"
-    #         ),
-    #     ],
-    #     code=os.path.join(pipeline_root_dir, "code/evaluation.py"),
-    # )
+    from sagemaker.model_metrics import MetricsSource, ModelMetrics
 
-    # from sagemaker.model_metrics import MetricsSource, ModelMetrics
-
-    # model_metrics = ModelMetrics(
-    #     model_statistics=MetricsSource(
-    #         s3_uri="{}/evaluation.json".format(
-    #             step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"][
-    #                 "S3Uri"
-    #             ]
-    #         ),
-    #         content_type="application/json",
-    #     )
-    # )
+    model_metrics = ModelMetrics(
+        model_statistics=MetricsSource(
+            s3_uri="{}/evaluation.json".format(
+                step_eval.arguments["ProcessingOutputConfig"]["Outputs"][0]["S3Output"][
+                    "S3Uri"
+                ]
+            ),
+            content_type="application/json",
+        )
+    )
     from sagemaker.model import Model
 
     model = Model(
@@ -161,32 +167,36 @@ def get_pipeline(input_data_uri, role):
         step_args=model.register(
             model_package_group_name=model_package_group_name,
             approval_status=model_approval_status,
-            # model_metrics=model_metrics,
+            model_metrics=model_metrics,
         ),
     )
 
-    # cond_lte = ConditionLessThanOrEqualTo(
-    #     left=JsonGet(
-    #         step_name=step_eval.name,
-    #         property_file=evaluation_report,
-    #         json_path="regression_metrics.accuracy.value",
-    #     ),
-    #     right=accuracy_threshold,
-    # )
+    from sagemaker.workflow.conditions import ConditionLessThanOrEqualTo
+    from sagemaker.workflow.condition_step import ConditionStep
+    from sagemaker.workflow.functions import JsonGet
+    cond_lte = ConditionLessThanOrEqualTo(
+        left=JsonGet(
+            step_name=step_eval.name,
+            property_file=evaluation_report,
+            json_path="regression_metrics.accuracy.value",
+        ),
+        right=accuracy_threshold,
+    )
+    from sagemaker.workflow.fail_step import FailStep
+    from sagemaker.workflow.functions import Join
+    step_fail = FailStep(
+        name="MnistAccuracyFail",
+        error_message=Join(
+            on=" ", values=["Execution failed due to accuracy <", accuracy_threshold]
+        ),
+    )
 
-    # step_fail = FailStep(
-    #     name="MnistAccuracyFail",
-    #     error_message=Join(
-    #         on=" ", values=["Execution failed due to accuracy <", accuracy_threshold]
-    #     ),
-    # )
-
-    # step_cond = ConditionStep(
-    #     name="MnistCondition",
-    #     conditions=[cond_lte],
-    #     if_steps=[step_register],
-    #     else_steps=[step_fail],
-    # )
+    step_cond = ConditionStep(
+        name="MnistCondition",
+        conditions=[cond_lte],
+        if_steps=[step_register],
+        else_steps=[step_fail],
+    )
 
     pipeline_name = "MNIST-Pipeline"
     pipeline = Pipeline(
@@ -197,7 +207,7 @@ def get_pipeline(input_data_uri, role):
             input_data,
             accuracy_threshold,
         ],
-        steps=[step_process, step_train, step_register],
+        steps=[step_process, step_train, step_eval, step_cond],
     )
 
     return pipeline
