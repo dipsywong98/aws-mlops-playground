@@ -15,7 +15,6 @@ from inference import model_fn
 from mnist import MnistDataset, Net
 
 
-
 def test(model, device, test_loader):
     model.eval()
     total = 0.0
@@ -24,7 +23,9 @@ def test(model, device, test_loader):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            pred = output.argmax(
+                dim=1, keepdim=True
+            )  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
             total += target.size(0)
 
@@ -51,17 +52,13 @@ if __name__ == "__main__":
     y_test = df.iloc[:, 0].to_numpy()
     df.drop(df.columns[0], axis=1, inplace=True)
 
-
-    
-    test_kwargs = {'batch_size': batch_size}
+    test_kwargs = {"batch_size": batch_size}
     test_dataset = MnistDataset("/opt/ml/processing/test/test.parquet")
 
-    test_loader = torch.utils.data.DataLoader(test_dataset,**test_kwargs)
+    test_loader = torch.utils.data.DataLoader(test_dataset, **test_kwargs)
 
     report_dict = {
-        "accuracy": {
-            "value": test(model, device, test_loader)
-        },
+        "accuracy": {"value": test(model, device, test_loader)},
     }
 
     output_dir = "/opt/ml/processing/evaluation"

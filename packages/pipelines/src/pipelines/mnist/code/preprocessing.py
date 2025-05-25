@@ -19,7 +19,7 @@ def ensure_parent_dir_exists(file_path):
 def save_as_parquet(np_array, file_path):
     """
     Save a numpy array as a parquet file.
-    
+
     Args:
         np_array (np.ndarray): The numpy array to save.
         file_path (str): The path where the parquet file will be saved.
@@ -31,7 +31,7 @@ def save_as_parquet(np_array, file_path):
     print(f"Saved data to {file_path}")
 
 
-def main(base_dir = "/opt/ml/processing"):
+def main(base_dir="/opt/ml/processing"):
     df = pd.read_parquet(
         f"{base_dir}/input/all.parquet",
     )
@@ -45,6 +45,7 @@ def main(base_dir = "/opt/ml/processing"):
     save_as_parquet(train, f"{base_dir}/train/train.parquet")
     save_as_parquet(validation, f"{base_dir}/validation/validation.parquet")
     save_as_parquet(test, f"{base_dir}/test/test.parquet")
+
 
 if __name__ == "__main__":
     print(os.environ)
