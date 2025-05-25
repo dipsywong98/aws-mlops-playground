@@ -10,4 +10,4 @@ model CT(continuous training) pipeline:
 
 Data preparation and validation -> Model training -> Model validation -> Model publishing and versioning -> Model serving
 
-model update and data update should trigger the 
+model update and data update should trigger the

@@ -1,12 +1,7 @@
-import argparse
 import json
-import os
 import pathlib
-import pickle
 import tarfile
 
-import joblib
-import numpy as np
 import pandas as pd
 import torch
 from inference import model_fn
@@ -40,7 +35,7 @@ if __name__ == "__main__":
         device = torch.accelerator.current_accelerator()
     else:
         device = torch.device("cpu")
-    model_path = f"/opt/ml/processing/model/model.tar.gz"
+    model_path = "/opt/ml/processing/model/model.tar.gz"
     with tarfile.open(model_path) as tar:
         tar.extractall(path=".")
 

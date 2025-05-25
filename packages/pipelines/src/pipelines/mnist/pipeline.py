@@ -1,9 +1,7 @@
 import os
 from sagemaker.workflow.pipeline_context import PipelineSession
 from sagemaker.workflow.pipeline import Pipeline
-from datetime import datetime
 from sagemaker.workflow.parameters import (
-    ParameterInteger,
     ParameterString,
     ParameterFloat,
 )
@@ -11,17 +9,10 @@ from sagemaker.inputs import TrainingInput
 from sagemaker.workflow.steps import TrainingStep, ProcessingStep
 from sagemaker.sklearn.processing import SKLearnProcessor
 from sagemaker.pytorch import PyTorch
-from sagemaker.pytorch.processing import PyTorchProcessor
 from sagemaker.processing import ProcessingInput, ProcessingOutput
-from sagemaker.workflow.properties import PropertyFile
 import typer
-from sagemaker.workflow.conditions import ConditionLessThanOrEqualTo
-from sagemaker.workflow.condition_step import ConditionStep
-from sagemaker.workflow.functions import JsonGet
 from sagemaker.workflow.model_step import ModelStep
 
-from sagemaker.workflow.fail_step import FailStep
-from sagemaker.workflow.functions import Join
 
 tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"}]
 
@@ -42,7 +33,7 @@ def get_pipeline(input_data_uri, role):
     )
 
     accuracy_threshold = ParameterFloat(name="AccuracyThreshold", default_value=6.0)
-    model_package_group_name = f"MnistModelPackageGroupName"
+    model_package_group_name = "MnistModelPackageGroupName"
 
     sklearn_processor = SKLearnProcessor(
         framework_version="1.2-1",
@@ -197,7 +188,7 @@ def get_pipeline(input_data_uri, role):
     #     else_steps=[step_fail],
     # )
 
-    pipeline_name = f"MNIST-Pipeline"
+    pipeline_name = "MNIST-Pipeline"
     pipeline = Pipeline(
         name=pipeline_name,
         parameters=[

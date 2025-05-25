@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-def train():
+def get_sagemaker_session():
     settings = Settings()
     boto_session = boto3.Session(
         aws_access_key_id=settings.aws_access_key_id,
@@ -33,6 +33,7 @@ def train():
         region_name=settings.region_name,
     )
     sagemaker_session = sagemaker.Session(boto_session=boto_session)
+    return sagemaker_session
 
 
 @task

@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Dataset
 
@@ -182,10 +181,6 @@ def main():
         accel_kwargs = {"num_workers": 1, "pin_memory": True, "shuffle": True}
         train_kwargs.update(accel_kwargs)
         validation_kwargs.update(accel_kwargs)
-
-    transform = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-    )
 
     dataset1 = MnistDataset(os.path.join(args.train, "train.parquet"))
     dataset2 = MnistDataset(os.path.join(args.validation, "validation.parquet"))
