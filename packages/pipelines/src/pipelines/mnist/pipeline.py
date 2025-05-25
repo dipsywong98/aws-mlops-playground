@@ -102,6 +102,7 @@ def get_pipeline(input_data_uri, role):
         env={
             'SAGEMAKER_REQUIREMENTS': 'requirements.txt',
         },
+        tags=tags,
     )
 
     evaluation_report = PropertyFile(
