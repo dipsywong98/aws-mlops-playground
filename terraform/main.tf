@@ -16,7 +16,7 @@ provider "aws" {
 
 data "archive_file" "sagemaker_list_models_lambda_file" {
   type        = "zip"
-  source_file = "../packages/functions/src/functions/list_models.py"
+  source_file = "../packages/functions/src/functions/get_models/lambda_function.py"
   output_path = "/tmp/sagemaker_list_models_lambda_file.zip"
 }
 
