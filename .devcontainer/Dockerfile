@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y openjdk-17-jdk graphviz gnupg software-
 RUN curl -fsSL https://downloads.apache.org/spark/spark-3.5.5/spark-3.5.5-bin-hadoop3.tgz \
     | tar -xz -C /opt/ && mv /opt/spark-3.5.5-bin-hadoop3 /opt/spark
 
+RUN wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list \
+    && sudo apt update && sudo apt install terraform
+
 # Set environment variables
 ENV SPARK_HOME="/opt/spark"
 ENV PATH="$SPARK_HOME/bin:$PATH"
