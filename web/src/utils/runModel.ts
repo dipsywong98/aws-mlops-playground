@@ -4,6 +4,13 @@ function init() {
   // env.wasm.simd = false;
 }
 
+export const loadModelFileAsSession = async (modelFile: ArrayBuffer) => {
+    const cpuSession = await createModelCpu(modelFile);
+    const session = cpuSession;
+    await warmupModel(session, [1, 1, 28, 28])
+    return session;
+  }
+
 export async function createModelCpu(model: ArrayBuffer): Promise<InferenceSession> {
   init();
   return await InferenceSession.create(model, { executionProviders: ['wasm'] });

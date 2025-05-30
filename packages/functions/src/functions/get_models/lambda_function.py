@@ -49,8 +49,8 @@ def extract_reupload_model(bucket_name, tarfile_object_key, onnxfile_boject_key)
 
 
 def lambda_handler(event, context):
-    ModelPackageName = event.get('ModelPackageArn', None)
-    if ModelPackageName is None:
+    ModelPackageName = event.get('queryStringParameters', {}).get('ModelPackageArn', None)
+    if ModelPackageName is None or ModelPackageName == "":
         resp = sm_client.list_model_packages(ModelPackageGroupName=model_package_group_name, ModelApprovalStatus="Approved")
         resp = [
             {
@@ -73,18 +73,18 @@ def lambda_handler(event, context):
     
     # s3://sagemaker-ap-southeast-2-993630082325/models/mnist/pipelines-q7lwddalt01t-MINIST-Train-5sHsaJrZoO/output/model.tar.gz
     tarfile_s3_url = res["InferenceSpecification"]["Containers"][0]["ModelDataUrl"]
-    # onnxfile_s3_url = tarfile_s3_url.replace("model.tar.gz", "model.onnx")
+    onnxfile_s3_url = tarfile_s3_url.replace("model.tar.gz", "model.onnx")
 
     bucket_name, tarfile_object_key = parse_s3_url(tarfile_s3_url)
-    # bucket_name, onnx_object_key = parse_s3_url(onnxfile_s3_url)
+    bucket_name, onnx_object_key = parse_s3_url(onnxfile_s3_url)
 
-    # if not check_file_exists(bucket_name, onnx_object_key):
-    #     extract_reupload_model(bucket_name, tarfile_object_key, onnx_object_key)
+    if not check_file_exists(bucket_name, onnx_object_key):
+        extract_reupload_model(bucket_name, tarfile_object_key, onnx_object_key)
 
     presigned_url = s3_client.generate_presigned_url(
         'get_object',
-        Params={'Bucket': bucket_name, 'Key': tarfile_object_key},
+        Params={'Bucket': bucket_name, 'Key': onnx_object_key},
         ExpiresIn=3600  # URL expires in 1 hour
     )
     
-    return {'download_url': presigned_url,'Bucket': bucket_name, 'Key': tarfile_object_key}
+    return {'download_url': presigned_url,'Bucket': bucket_name, 'Key': onnx_object_key}
