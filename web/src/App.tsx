@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CanvasDraw from './CanvasDraw';
 import Inference from './Inference';
 import ModelPicker from './ModelPicker';
 import type { InferenceSession } from 'onnxruntime-web';
 import { loadModelFileAsSession } from './utils/runModel';
 import { getModelDownloadUrl } from './utils/downloadModel';
+
+const writeUpUrl = 'https://hackmd.io/-dDxFNT0ROadEo6dUEqMyA'
 
 export default function App() {
   const [outputArray, setOutputArray] = useState<number[][]>(Array(28).fill(Array(28).fill(0)));
@@ -34,6 +36,12 @@ export default function App() {
     return <Inference session={sessions[pickedModelName]} inputArray={outputArray} />;
   }, [pickedModelName, sessions, outputArray]);
 
+  useEffect(() => {
+    if (window.location.href.includes('openWriteUp')) {
+      window.location.href = writeUpUrl
+    }
+  }, [])
+
   return (
     <div>
       <h1>MNIST Playground</h1>
@@ -41,6 +49,8 @@ export default function App() {
         <a href="https://dipsy.me" target='_blank'>Made by Dipsy</a>
         {' | '}
         <a href="https://github.com/dipsywong98/aws-mlops-playground/" target='_blank'>Repo</a>
+        {' | '}
+        <a href={writeUpUrl} target='_blank'>Write Up</a>
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <ModelPicker value={pickedModelName} onChange={handleModelNameChange} />
