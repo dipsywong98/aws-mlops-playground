@@ -1,17 +1,20 @@
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths: ["web"]
+    branches: ["main"]
 
   pull_request:
-    branches: [main]
-    paths: ["web"]
+    branches: ["main"]
 
+permissions:
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
 
     steps:
       - uses: actions/checkout@v3
@@ -20,9 +23,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-
-      - name: cd web
-        run: cd web
 
       - name: Get yarn cache
         id: yarn-cache

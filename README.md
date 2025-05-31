@@ -10,4 +10,8 @@ model CT(continuous training) pipeline:
 
 Data preparation and validation -> Model training -> Model validation -> Model publishing and versioning -> Model serving
 
-model update and data update should trigger the
+aws lambda to serve model in offline manner, that is the download the entire model to run on browser
+
+use vite+react+onnx-web to run the model on handwritten digits
+
+deploy the website on cloudflare for simplicity
