@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react";
-import { listModels, type ModelListResponse } from "./utils/downloadModel";
+import { listModels, type ModelInfo, type ModelListResponse } from "./utils/downloadModel";
 
-export default function ModelPicker ({value, onChange}: {
+const localModels: Array<ModelInfo> = [
+  {
+    ModelPackageVersion: 'onnx-demo',
+    ModelPackageArn: './mnist.onnx',
+    CreationTime: '',
+  },
+  {
+    ModelPackageVersion: 'local-pytorch',
+    ModelPackageArn: './mnist_local_pytorch.onnx',
+    CreationTime: '',
+  },
+]
+
+export default function ModelPicker({ value, onChange }: {
   value: string | null;
-  onChange: (modelName: string) => void;}) {
-  const [models, setModels] = useState<ModelListResponse>([]);
+  onChange: (modelName: string) => void;
+}) {
+  const [models, setModels] = useState<ModelListResponse>(localModels);
   const refreshModels = () => {
-    listModels().then(setModels).catch((error) => {
+    listModels().then((r) => setModels([...r, ...localModels])).catch((error) => {
       console.error("Failed to fetch models:", error);
     })
   }
@@ -19,7 +33,7 @@ export default function ModelPicker ({value, onChange}: {
         <option value="" disabled>Select a model</option>
         {models.map((model, index) => (
           <option key={index} value={model.ModelPackageArn}>
-            v{model.ModelPackageVersion} {model.CreationTime.substring(0, 19)}
+            {typeof(model.ModelPackageVersion) === 'number' ? `v${model.ModelPackageVersion}` : model.ModelPackageVersion} {model.CreationTime.substring(0, 19)}
           </option>
         ))}
       </select>

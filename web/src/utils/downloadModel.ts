@@ -4,7 +4,7 @@ import z from "zod";
 
 
 export const ModelInfo = z.object({
-  ModelPackageVersion: z.number(),
+  ModelPackageVersion: z.union([z.number(), z.string()]),
   ModelPackageArn: z.string(),
   CreationTime: z.string()
 })
@@ -27,6 +27,9 @@ export const listModels = async (): Promise<ModelListResponse> => {
 }
 
 export const getModelDownloadUrl = async (modelName: string): Promise<string> => {
+  if (!modelName.startsWith('arn:')) {
+    return modelName
+  }
   const url = `${config.GET_MODEL_URL}?ModelPackageArn=${modelName}`;
   const resp = await fetch(url).then(r => {
     if (!r.ok) {
