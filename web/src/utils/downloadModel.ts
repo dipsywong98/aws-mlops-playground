@@ -19,6 +19,7 @@ export type ModelListResponse = z.infer<typeof ListModelsResponse>;
 
 export const listModels = async (): Promise<ModelListResponse> => {
   const url = config.GET_MODEL_URL
+  // const url = '/models.json'
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch models list from ${url}`);

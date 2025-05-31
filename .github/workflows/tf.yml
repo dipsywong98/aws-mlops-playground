@@ -1,18 +1,16 @@
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  #   # paths: ["terraform/**"]
-  #   paths: ["**"]
+  push:
+    branches: [main]
+    paths: ["terraform/**", "packages/pipelines/**"]
 
-  # pull_request:
-  #   branches: [main]
-  #   # paths: ["terraform/**"]
-  #   paths: ["**"]
+  pull_request:
+    branches: [main]
+    paths: ["terraform/**", "packages/pipelines/**"]
 
 
 jobs:
-  plan:
+  tf-plan:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -29,9 +27,9 @@ jobs:
           terraform init
           terraform plan
 
-  deploy:
+  tf-deploy:
     name: Terraform Deploy
-    needs: plan
+    needs: tf-plan
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-22.04
     steps:

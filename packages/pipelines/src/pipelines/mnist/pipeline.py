@@ -17,7 +17,7 @@ from sagemaker.workflow.model_step import ModelStep
 tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"}]
 
 
-def get_pipeline(input_data_uri, role):
+def get_pipeline(input_data_uri, role, epochs):
     pipeline_name = "MNIST-Pipeline"
     pipeline_session = PipelineSession(default_bucket_prefix=f"{pipeline_name}-substeps")
     pipeline_root_dir = os.path.dirname(__file__)
@@ -72,7 +72,7 @@ def get_pipeline(input_data_uri, role):
         py_version="py312",
         instance_count=1,
         train_instance_type="ml.m5.large",
-        hyperparameters={"epochs": 1},
+        hyperparameters={"epochs": epochs},
         output_path="s3://sagemaker-ap-southeast-2-993630082325/models/mnist",
         env={
             "SAGEMAKER_REQUIREMENTS": "requirements.txt",
@@ -219,8 +219,9 @@ def main(
     input_data_uri="s3://sagemaker-ap-southeast-2-993630082325/datasets/mnist/original",
     role="arn:aws:iam::993630082325:role/service-role/AmazonSageMaker-ExecutionRole-20250516T191424",
     run_pipeline=False,
+    epochs=1,
 ):
-    pipeline = get_pipeline(input_data_uri, role)
+    pipeline = get_pipeline(input_data_uri, role, epochs)
     pipeline.upsert(role_arn=role, tags=[{"Key": "Project", "Value": "MNIST"}])
     print(f"Pipeline {pipeline.name} created successfully.")
     if run_pipeline:

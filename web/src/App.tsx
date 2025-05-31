@@ -15,7 +15,7 @@ export default function App() {
     setPickedModelName(modelName);
     if (!(modelName in sessions)) {
       const downloadUrl = await getModelDownloadUrl(modelName);
-      // const downloadUrl = '/model.tar.gz'; // For local testing, replace with actual download URL in production
+      // const downloadUrl = '/mnist-0.onnx'; // For local testing, replace with actual download URL in production
       console.log(`Downloading model: ${modelName} from ${downloadUrl}`);
       const modelFile = await fetch(downloadUrl).then(r => r.arrayBuffer());
       console.log(modelFile)

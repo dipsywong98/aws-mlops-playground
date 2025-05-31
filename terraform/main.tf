@@ -11,7 +11,7 @@ terraform {
 
 provider "aws" {
   # profile = "default"
-  region  = "ap-southeast-2"
+  region = "ap-southeast-2"
 }
 
 data "archive_file" "sagemaker_list_models_lambda_file" {
@@ -21,12 +21,22 @@ data "archive_file" "sagemaker_list_models_lambda_file" {
 }
 
 resource "aws_lambda_function" "sagemaker_list_models_lambda" {
-  function_name = "sagemaker_list_models_lambda"
-  role          = "arn:aws:iam::993630082325:role/lambda_sagemaker_role"
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.12"
-  filename      = data.archive_file.sagemaker_list_models_lambda_file.output_path
+  function_name    = "sagemaker_list_models_lambda"
+  role             = "arn:aws:iam::993630082325:role/lambda_sagemaker_role"
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
+  filename         = data.archive_file.sagemaker_list_models_lambda_file.output_path
   source_code_hash = data.archive_file.sagemaker_list_models_lambda_file.output_base64sha256
+  timeout          = 30
+}
+
+resource "aws_lambda_function_url" "sagemaker_list_models_lambda_url" {
+  function_name      = aws_lambda_function.sagemaker_list_models_lambda.function_name
+  authorization_type = "NONE"
+  cors {
+    allow_methods = ["GET"]
+    allow_origins = ["*"]
+  }
 }
 
 resource "aws_lambda_permission" "allow_invoke" {

@@ -33,7 +33,7 @@ function env(key: string, fallback: EnvType): EnvType {
 const config = {
   APP_NAME: env('APP_NAME', name),
   APP_VERSION: version,
-  GET_MODEL_URL: env('GET_MODEL_URL', 'https://vewdtihoome2nky4pe47te2dvm0ymmch.lambda-url.ap-southeast-2.on.aws'),
+  GET_MODEL_URL: env('GET_MODEL_URL', 'https://5mxvrj6jldnwk43dt2gicz6uqa0yelay.lambda-url.ap-southeast-2.on.aws/'),
 };
 
 export default config;
