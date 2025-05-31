@@ -1,0 +1,27 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ListSageMakerModelPackages",
+            "Effect": "Allow",
+            "Action": [
+                "sagemaker:ListModelPackages",
+                "sagemaker:DescribeModelPackage"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AccessS3Models",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::sagemaker-ap-southeast-2-993630082325",
+                "arn:aws:s3:::sagemaker-ap-southeast-2-993630082325/models/*"
+            ]
+        }
+    ]
+}

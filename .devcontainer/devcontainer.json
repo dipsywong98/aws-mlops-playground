@@ -11,7 +11,38 @@
     }
   },
   "postStartCommand": "post-start",
-  "settings": {},
-  "extensions": ["hashicorp.terraform"],
+  "mounts": [
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+  ],
+    "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+			"plugins": "git man python zsh-syntax-highlighting zsh-autosuggestions",
+			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting.git https://github.com/zsh-users/zsh-autosuggestions.git"
+		},
+    "ghcr.io/hwaien/devcontainer-features/match-host-time-zone": {}
+  },
+   "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "settings": {
+        "files.autoSave": "onFocusChange",
+        "editor.tabSize": 2,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.formatting.provider": "black",
+        "python.defaultInterpreterPath": "./.venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestEnabled": true
+      },
+      "extensions": [
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "eamodio.gitlens",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml",
+        "hashicorp.terraform",
+      ]
+    }
+  },
   "remoteUser": "vscode"
 }

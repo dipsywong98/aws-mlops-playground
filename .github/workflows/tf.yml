@@ -2,17 +2,15 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    # paths: ["terraform/**"]
-    paths: ["**"]
+    paths: ["terraform/**", "packages/pipelines/**"]
 
   pull_request:
     branches: [main]
-    # paths: ["terraform/**"]
-    paths: ["**"]
+    paths: ["terraform/**", "packages/pipelines/**"]
 
 
 jobs:
-  plan:
+  tf-plan:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-2
+          aws-region: ap-southeast-2
       - name: Initialise project and view terraform plan
         run: |
           cd terraform
@@ -29,9 +27,9 @@ jobs:
           terraform init
           terraform plan
 
-  deploy:
+  tf-deploy:
     name: Terraform Deploy
-    needs: plan
+    needs: tf-plan
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-22.04
     steps:
@@ -45,7 +43,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-2
+          aws-region: ap-southeast-2
       - name: Initialise project and deploy terraform
         run: |
           cd terraform

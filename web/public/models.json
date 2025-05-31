@@ -1,0 +1,7 @@
+[
+  {
+    "CreationTime": "2025-05-25T15:42:55.853000+00:00",
+    "ModelPackageArn": "arn:aws:sagemaker:ap-southeast-2:993630082325:model-package\/MnistModelPackageGroupName\/3",
+    "ModelPackageVersion": 3
+  }
+]
