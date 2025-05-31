@@ -1,10 +1,10 @@
 import pandas as pd
 from pipelines.mnist.code.preprocessing import main as preprocess
 import os
-from fixtures.fixtures import *
+from fixtures.fixtures import tmp_dir, all_parquet  # noqa: F401
 
 
-def test_preprocessing_generate_train_test_validation_parquets(tmp_dir, all_parquet):
+def test_preprocessing_generate_train_test_validation_parquets(tmp_dir, all_parquet):  # noqa: F811
     # assert directory not exists
     assert not os.path.exists(os.path.join(tmp_dir, "processing/train"))
     assert not os.path.exists(os.path.join(tmp_dir, "processing/test"))

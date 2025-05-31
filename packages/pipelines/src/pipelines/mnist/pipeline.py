@@ -19,7 +19,9 @@ tags = [{"Key": "Project", "Value": "MNIST"}, {"Key": "Commit", "Value": "MNIST"
 
 def get_pipeline(input_data_uri, role, epochs):
     pipeline_name = "MNIST-Pipeline"
-    pipeline_session = PipelineSession(default_bucket_prefix=f"{pipeline_name}-substeps")
+    pipeline_session = PipelineSession(
+        default_bucket_prefix=f"{pipeline_name}-substeps"
+    )
     pipeline_root_dir = os.path.dirname(__file__)
 
     instance_type = ParameterString(

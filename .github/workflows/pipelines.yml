@@ -57,4 +57,4 @@ jobs:
         run: uv sync
 
       # TODO: see if can use local sagemaker
-      - run: uv run packages/pipelines/src/pipelines/mnist/pipeline.py --run-pipeline=False --epoch=1 
+      - run: uv run packages/pipelines/src/pipelines/mnist/pipeline.py --run-pipeline=False --epoch=1

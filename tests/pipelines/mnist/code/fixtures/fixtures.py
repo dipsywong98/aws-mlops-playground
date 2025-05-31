@@ -7,6 +7,7 @@ import pytest
 
 fixture_dir = Path(__file__).parent
 
+
 @pytest.fixture
 def tmp_dir():
     tmp_dir = Path("/tmp/mnist")
@@ -15,6 +16,7 @@ def tmp_dir():
     # copy all.parquet to /tmp/mnist/processing/input
     os.makedirs(tmp_dir, exist_ok=True)
     yield tmp_dir
+
 
 @pytest.fixture
 def all_parquet(tmp_dir):
@@ -25,6 +27,8 @@ def all_parquet(tmp_dir):
         dest,
     )
     return dest
+
+
 @pytest.fixture
 def test_parquet(tmp_dir):
     os.makedirs(os.path.join(tmp_dir, "processing/test"), exist_ok=True)
@@ -34,6 +38,8 @@ def test_parquet(tmp_dir):
         dest,
     )
     return dest
+
+
 @pytest.fixture
 def train_parquet(tmp_dir):
     os.makedirs(os.path.join(tmp_dir, "processing/train"), exist_ok=True)
@@ -43,6 +49,8 @@ def train_parquet(tmp_dir):
         dest,
     )
     return dest
+
+
 @pytest.fixture
 def validation_parquet(tmp_dir):
     os.makedirs(os.path.join(tmp_dir, "processing/validation"), exist_ok=True)
@@ -52,6 +60,8 @@ def validation_parquet(tmp_dir):
         dest,
     )
     return dest
+
+
 @pytest.fixture
 def model_tar_gz(tmp_dir):
     os.makedirs(os.path.join(tmp_dir, "processing/model"), exist_ok=True)

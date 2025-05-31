@@ -22,7 +22,7 @@ export default function App() {
       const session = await loadModelFileAsSession(modelFile);
       setSessions({...sessions, [modelName]: session });
     }
-  } 
+  }
 
   const inferenceResult = useMemo(() => {
     if (!pickedModelName) {
