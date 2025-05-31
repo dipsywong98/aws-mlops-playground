@@ -33,7 +33,7 @@ preparation and validation of data -> training -> evaluation -> registration -> 
 ```
 ├── .devcontainer
 ├── .github/workflows # workflows to run lint, test, terraform, and pipeline, web deployment
-├── iam # json file of aws iam policy. manually set up on UI and potentially can use terraform to automate, 
+├── iam # json file of aws iam policy. manually set up on UI and potentially can use terraform to automate,
 │         need to check if that is secure
 ├── packages
 │   ├── experiments # some experiments to verify concept locally or to prepare data to s3
