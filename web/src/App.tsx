@@ -37,6 +37,11 @@ export default function App() {
   return (
     <div>
       <h1>MNIST Playground</h1>
+      <p>
+        <a href="https://dipsy.me" target='_blank'>Made by Dipsy</a>
+        {' | '}
+        <a href="https://github.com/dipsywong98/aws-mlops-playground/" target='_blank'>Repo</a>
+      </p>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <ModelPicker value={pickedModelName} onChange={handleModelNameChange} />
         <div>
