@@ -1,12 +1,10 @@
 on:
   workflow_dispatch:
   push:
-    branches: [main]
-    paths: ["web"]
+    branches: ["main"]
 
   pull_request:
-    branches: [main]
-    paths: ["web"]
+    branches: ["main"]
 
 
 jobs:
