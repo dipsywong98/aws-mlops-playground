@@ -36,7 +36,7 @@ export default function App() {
 
   return (
     <div>
-      <h1>Hello, world!</h1>
+      <h1>MNIST Playground</h1>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <ModelPicker value={pickedModelName} onChange={handleModelNameChange} />
         <div>

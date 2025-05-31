@@ -15,26 +15,14 @@ export default function ModelPicker ({value, onChange}: {
   }, []);
   return (
     <div>
-      <h2>Model Picker</h2>
-      <p>Select a model to use for inference.</p>
-      {/* Add model selection UI here */}
       <select value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
         <option value="" disabled>Select a model</option>
         {models.map((model, index) => (
           <option key={index} value={model.ModelPackageArn}>
-            Model Package Version: {model.ModelPackageVersion}
+            v{model.ModelPackageVersion} {model.CreationTime.substring(0, 19)}
           </option>
         ))}
       </select>
-      {/* <ul>
-        {models.map((model, index) => (
-          <li key={index}>
-            <strong>Model Package Version:</strong> {model.ModelPackageVersion} <br />
-            <strong>Model Package ARN:</strong> {model.ModelPackageArn} <br />
-            <strong>Creation Time:</strong> {new Date(model.CreationTime).toLocaleString()} <br />
-          </li>
-        ))}
-      </ul> */}
       <button onClick={refreshModels}>
         Refresh Models
       </button>

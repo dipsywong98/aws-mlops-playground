@@ -14,4 +14,5 @@ export default defineConfig({
       ]
     }),
   ],
+  base: '/aws-mlops-playground/',
 })
