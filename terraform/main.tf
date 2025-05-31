@@ -5,6 +5,12 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "s3" {
+    bucket         = "sagemaker-ap-southeast-2-993630082325"
+    key            = "terraform.tfstate"
+    region         = "ap-southeast-2"
+    encrypt        = true
+  }
 
   required_version = ">= 1.12.1"
 }
