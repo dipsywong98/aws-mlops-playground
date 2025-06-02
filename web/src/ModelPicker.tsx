@@ -12,6 +12,16 @@ const localModels: Array<ModelInfo> = [
     ModelPackageArn: './mnist_local_pytorch.onnx',
     CreationTime: '',
   },
+  {
+    ModelPackageVersion: 'local-pytorch-cntk',
+    ModelPackageArn: './mnist_cnn_CNTK_translated.onnx',
+    CreationTime: '',
+  },
+  {
+    ModelPackageVersion: 'local-pytorch-cntk2',
+    ModelPackageArn: './mnist_cnn_CNTK_translated2.onnx',
+    CreationTime: '',
+  },
 ]
 
 export default function ModelPicker({ value, onChange }: {

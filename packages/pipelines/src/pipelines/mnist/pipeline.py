@@ -163,7 +163,7 @@ def get_pipeline(input_data_uri, role, epochs):
     model = Model(
         image_uri=estimator.training_image_uri(),
         model_data=step_train.properties.ModelArtifacts.S3ModelArtifacts,
-        sagemaker_session=PipelineSession(),
+        sagemaker_session=pipeline_session,
         role=role,
     )
     step_register = ModelStep(

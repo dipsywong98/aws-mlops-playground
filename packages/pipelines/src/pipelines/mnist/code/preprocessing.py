@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 def ensure_parent_dir_exists(file_path):
@@ -35,15 +35,28 @@ def main(base_dir="/opt/ml/processing"):
         f"{base_dir}/input/all.parquet",
     )
 
+    size = 28 * 28
+    # ensure the data columns is of type float
+    # df = df.astype('Float32')
+    # df.iloc[:, :size] = df.iloc[:, :size].astype('Float32')
+    # ensure the input data is normalized
+    df.iloc[:, :size] = (df.iloc[:, :size] - df.iloc[:, :size].min().min()) / (df.iloc[:, :size].max().max() - df.iloc[:, :size].min().min())
+
     # As there is no feature engineering required in mnist,
     # we can directly split the data into train, validation, and test sets.
 
-    X = df.to_numpy()
-    train, validation, test = np.split(X, [int(0.7 * len(X)), int(0.85 * len(X))])
 
-    save_as_parquet(train, f"{base_dir}/train/train.parquet")
-    save_as_parquet(validation, f"{base_dir}/validation/validation.parquet")
-    save_as_parquet(test, f"{base_dir}/test/test.parquet")
+    # Stratified split into 90%, 5%, and 5%
+    train_df, temp_df = train_test_split(df, test_size=0.1, stratify=df['label'], random_state=42)
+    val_df, test_df = train_test_split(temp_df, test_size=0.5, stratify=temp_df['label'], random_state=42)
+
+    print(train_df['label'].value_counts())  # Check distribution
+    print(val_df['label'].value_counts())  # Check distribution
+    print(test_df['label'].value_counts())  # Check distribution
+
+    save_as_parquet(train_df, f"{base_dir}/train/train.parquet")
+    save_as_parquet(val_df, f"{base_dir}/validation/validation.parquet")
+    save_as_parquet(test_df, f"{base_dir}/test/test.parquet")
 
 
 if __name__ == "__main__":

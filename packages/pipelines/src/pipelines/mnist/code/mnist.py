@@ -35,7 +35,7 @@ class Net(nn.Module):
         return output
 
 
-def train(args, model, device, train_loader, optimizer, epoch):
+def train(log_interval, dry_run, model, device, train_loader, optimizer, epoch):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -44,7 +44,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
         loss = F.nll_loss(output, target)
         loss.backward()
         optimizer.step()
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % log_interval == 0:
             print(
                 "Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
                     epoch,
@@ -54,7 +54,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
                     loss.item(),
                 )
             )
-            if args.dry_run:
+            if dry_run:
                 break
 
 
@@ -94,12 +94,70 @@ class MnistDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        image = self.data.iloc[idx, :-1].values.reshape(1, 28, 28).astype("float32")
+        image = self.data.iloc[idx, :-
+                               1].values.reshape(1, 28, 28).astype("float32")
         label = self.data.iloc[idx, -1]
         return torch.tensor(image), torch.tensor(label)
 
 
-def main():
+def main(batch_size=64,
+         validation_batch_size=1000,
+         epochs=14,
+         lr=1,
+         gamma=0.7,
+         no_accel=False,
+         dry_run=False,
+         seed=1,
+         log_interval=10,
+         save_model=True,
+         output_data_dir=os.environ.get("SM_OUTPUT_DATA_DIR"),
+         model_dir=os.environ.get("SM_MODEL_DIR"),
+         train_dir=os.environ.get("SM_CHANNEL_TRAIN"),
+         validation_dir=os.environ.get("SM_CHANNEL_VALIDATION"),
+         ):
+    use_accel = not no_accel and torch.accelerator.is_available()
+
+    torch.manual_seed(seed)
+
+    if use_accel:
+        device = torch.accelerator.current_accelerator()
+    else:
+        device = torch.device("cpu")
+
+    train_kwargs = {"batch_size": batch_size}
+    validation_kwargs = {"batch_size": validation_batch_size}
+    if use_accel:
+        accel_kwargs = {"num_workers": 1, "pin_memory": True, "shuffle": True}
+        train_kwargs.update(accel_kwargs)
+        validation_kwargs.update(accel_kwargs)
+
+    dataset1 = MnistDataset(os.path.join(train_dir, "train.parquet"))
+    dataset2 = MnistDataset(os.path.join(
+        validation_dir, "validation.parquet"))
+
+    train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
+    validation_loader = torch.utils.data.DataLoader(
+        dataset2, **validation_kwargs)
+
+    model = Net().to(device)
+    optimizer = optim.Adadelta(model.parameters(), lr=lr)
+
+    scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
+    for epoch in range(1, epochs + 1):
+        train(log_interval, dry_run, model, device, train_loader, optimizer, epoch)
+        validation(model, device, validation_loader)
+        scheduler.step()
+
+    output_dir = model_dir
+    os.makedirs(output_dir, exist_ok=True)
+    torch.save(model.state_dict(), f"{output_dir}/model.pth")
+    example_inputs = (torch.randn(1, 1, 28, 28),)
+    onnx_program = torch.onnx.export(model, example_inputs, dynamo=True)
+    onnx_program.optimize()
+    onnx_program.save(f"{output_dir}/model.onnx")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
     parser.add_argument(
         "--batch-size",
@@ -136,7 +194,8 @@ def main():
         metavar="M",
         help="Learning rate step gamma (default: 0.7)",
     )
-    parser.add_argument("--no-accel", action="store_true", help="disables accelerator")
+    parser.add_argument("--no-accel", action="store_true",
+                        help="disables accelerator")
     parser.add_argument(
         "--dry-run", action="store_true", help="quickly check a single pass"
     )
@@ -159,51 +218,27 @@ def main():
     parser.add_argument(
         "--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"]
     )
-    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--train", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
+    parser.add_argument("--model-dir", type=str,
+                        default=os.environ["SM_MODEL_DIR"])
+    parser.add_argument("--train", type=str,
+                        default=os.environ["SM_CHANNEL_TRAIN"])
     parser.add_argument(
         "--validation", type=str, default=os.environ["SM_CHANNEL_VALIDATION"]
     )
     args = parser.parse_args()
-
-    use_accel = not args.no_accel and torch.accelerator.is_available()
-
-    torch.manual_seed(args.seed)
-
-    if use_accel:
-        device = torch.accelerator.current_accelerator()
-    else:
-        device = torch.device("cpu")
-
-    train_kwargs = {"batch_size": args.batch_size}
-    validation_kwargs = {"batch_size": args.validation_batch_size}
-    if use_accel:
-        accel_kwargs = {"num_workers": 1, "pin_memory": True, "shuffle": True}
-        train_kwargs.update(accel_kwargs)
-        validation_kwargs.update(accel_kwargs)
-
-    dataset1 = MnistDataset(os.path.join(args.train, "train.parquet"))
-    dataset2 = MnistDataset(os.path.join(args.validation, "validation.parquet"))
-
-    train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
-    validation_loader = torch.utils.data.DataLoader(dataset2, **validation_kwargs)
-
-    model = Net().to(device)
-    optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
-
-    scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
-    for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
-        validation(model, device, validation_loader)
-        scheduler.step()
-
-    output_dir = args.model_dir
-    torch.save(model.state_dict(), f"{output_dir}/model.pth")
-    example_inputs = (torch.randn(1, 1, 28, 28),)
-    onnx_program = torch.onnx.export(model, example_inputs, dynamo=True)
-    onnx_program.optimize()
-    onnx_program.save(f"{output_dir}/model.onnx")
-
-
-if __name__ == "__main__":
-    main()
+    main(
+        batch_size=args.batch_size,
+        validation_batch_size=args.validation_batch_size,
+        epochs=args.epochs,
+        lr=args.lr,
+        gamma=args.gamma,
+        no_accel=args.no_accel,
+        dry_run=args.dry_run,
+        seed=args.seed,
+        log_interval=args.log_interval,
+        save_model=args.save_model,
+        output_data_dir=args.output_data_dir,
+        model_dir=args.model_dir,
+        train_dir=args.train,
+        validation_dir=args.validation
+    )

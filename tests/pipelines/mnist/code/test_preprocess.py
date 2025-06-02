@@ -4,6 +4,15 @@ import os
 from fixtures.fixtures import tmp_dir, all_parquet  # noqa: F401
 
 
+def check_df(df: pd.DataFrame):
+    size = 28*28
+    assert len(df) > 0
+    assert df.shape[1] == 785
+    assert set(df['label'].value_counts().keys()) == set(range(10))
+    assert df.iloc[:, :size].min().min() == 0.0
+    assert df.iloc[:, :size].max().max() == 1.0
+    assert df["label"].dtype == "int64"
+
 def test_preprocessing_generate_train_test_validation_parquets(tmp_dir, all_parquet):  # noqa: F811
     # assert directory not exists
     assert not os.path.exists(os.path.join(tmp_dir, "processing/train"))
@@ -31,10 +40,10 @@ def test_preprocessing_generate_train_test_validation_parquets(tmp_dir, all_parq
     )
     test_df = pd.read_parquet(os.path.join(tmp_dir, "processing/test/test.parquet"))
 
-    assert len(train_df) > 0
-    assert len(validation_df) > 0
-    assert len(test_df) > 0
-    # assert train_df, validation_df, test_df are pd dataframes of shape (n, 785)
-    assert train_df.shape[1] == 785
-    assert validation_df.shape[1] == 785
-    assert test_df.shape[1] == 785
+    check_df(train_df)
+    check_df(validation_df)
+    check_df(test_df)
+
+    assert len(train_df) == 63000
+    assert len(validation_df) == 3500
+    assert len(test_df) == 3500
